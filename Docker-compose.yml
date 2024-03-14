@@ -1,0 +1,60 @@
+version: "3"
+
+services:
+  redis-server:
+    image: redis:latest
+    entrypoint: "redis-server"
+    environment:
+      - TZ=Asia/Shanghai
+    hostname: "redis-server"
+    restart: unless-stopped
+    volumes:
+      - /www/ent_spider/logs:/app/enthost_spider/logs
+      - /www/ent_spider/data:/app/enthost_spider/data
+    env_file:
+      - .env
+  scrapyd:
+    build: .
+    entrypoint: "scrapyd --pidfile= "
+    environment:
+      - TZ=Asia/Shanghai
+    hostname: "scrapyd"
+    restart: unless-stopped
+    volumes:
+      - /www/ent_spider/logs:/app/enthost_spider/logs
+      - /www/ent_spider/dbs:/app/enthost_spider/dbs
+      - /www/ent_spider/eggs:/app/enthost_spider/eggs
+    ports:
+      - "6800:6800"
+    env_file:
+      - .env
+  scrapydweb:
+    build: .
+    entrypoint: "scrapydweb"
+    hostname: "scrapydweb"
+    restart: unless-stopped
+    environment:
+      - TZ=Asia/Shanghai
+      - MAIN_SCRAPYD_HOST=scrapyd
+      - MAIN_SCRAPYD_PORT=6800
+      - DATA_PATH=/app/enthost_spider/data
+    volumes:
+      - /www/ent_spider/logs:/app/enthost_spider/logs
+      - /www/ent_spider/data:/app/enthost_spider/data
+    ports:
+      - "6799:5000"
+    env_file:
+      - .env
+    depends_on:
+      - "scrapyd"
+  logparser:
+    build: .
+    entrypoint: "logparser -dir=/app/enthost_spider/logs"
+    environment:
+      - TZ=Asia/Shanghai
+    hostname: "logparser"
+    restart: unless-stopped
+    volumes:
+      - /www/ent_spider/logs:/app/enthost_spider/logs
+    env_file:
+      - .env

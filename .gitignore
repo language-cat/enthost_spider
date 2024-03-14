@@ -1,0 +1,7 @@
+.idea
+dbs
+.env
+logs
+venv
+build
+project.egg-info
